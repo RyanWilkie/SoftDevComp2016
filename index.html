@@ -4,10 +4,10 @@
         <meta charset="utf-8">
         <title>Soft Dev Challenge 2016</title>
 
-        <script   src="https://code.jquery.com/jquery-3.1.0.min.js"   integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="   crossorigin="anonymous"></script>
-
         <!-- Latest compiled and minified CSS -->
         <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+        <script   src="https://code.jquery.com/jquery-3.1.0.min.js"   integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="   crossorigin="anonymous"></script>
 
         <!-- Latest compiled and minified JavaScript -->
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
@@ -20,29 +20,26 @@
         <div id="car-details-wrapper">
             <form>
                 <div class="form-group">
-                    <!-- <label for="inputDistance">Distance</label> -->
-                    <input type="text" class="form-control" id="startLoc" placeholder="Select Start Location" >
+                    <label for="from">From</label>
+                    <input type="text" class="form-control" id="from" placeholder="Start Position" >
                 </div>
 
                 <div class="form-group">
-                    <!-- <label for="inputCO2">CO&#8322;/km</label> -->
-                    <input type="text" class="form-control" id="destLoc" placeholder="Select Destination" >
+                    <label for="to">To</label>
+                    <input type="text" class="form-control" id="to" placeholder="End Position" >
                 </div>
 
                 <div class="form-group">
-                    <!-- <label for="inputCO2Usage">CO&#8322; used</label> -->
                     <input type="text" class="form-control" id="regNo" placeholder="Car Resgistration Number" >
                 </div>
 
                 <button type="button" id="useCar" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="left" data-content="You must enter a car registration to use this." trigger="manual">Use my car</button>
 
-                <div class="row" id="transport-selector-wrapper">
-
-                    <div class="col-md-3"><button type="button" id="carSelect" class="btn btn-default">Car</button></div>
-                    <div class="col-md-3"><button type="button" id="busSelect" class="btn btn-default">Bus</button></div>
-                    <div class="col-md-3"><button type="button" id="trainSelect" class="btn btn-default">Train</button></div>
-                    <div class="col-md-3"><button type="button" id="walkSelect" class="btn btn-default">Walk</button></div>
-
+                <div id="travel-mode" class="form-group">
+                    <button class="btn btn-success active" id="car" data-travel-mode="DRIVING">Car</button>
+                    <button class="btn btn-success" id="bus" data-travel-mode="BUS">Bus</button>
+                    <button class="btn btn-success" id="train" data-travel-mode="TRAIN">Train</button>
+                    <button class="btn btn-success" id="car" data-travel-mode="WALKING">Walk</button>
                 </div>
 
                 <div id="trip-info-wrapper">
@@ -65,49 +62,6 @@
                     </div>
 
                 </div>
-
-                <div class="form-group">
-                    <!-- <label for="inputCO2">CO&#8322;/km</label> -->
-                    <input type="text" class="form-control" id="destLoc" placeholder="Select Destination" >
-                </div>
-
-                <div class="form-group">
-                    <!-- <label for="inputCO2Usage">CO&#8322; used</label> -->
-                    <input type="text" class="form-control" id="regNo" placeholder="Car Resgistration Number" >
-                </div>
-
-                <button type="button" id="useCar" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="left" data-content="You must enter a car registration to use this." trigger="manual">Use my car</button>
-
-                <div class="row" id="transport-selector-wrapper">
-
-                    <div class="col-md-3"><button type="button" id="carSelect" class="btn btn-default">Car</button></div>
-                    <div class="col-md-3"><button type="button" id="busSelect" class="btn btn-default">Bus</button></div>
-                    <div class="col-md-3"><button type="button" id="trainSelect" class="btn btn-default">Train</button></div>
-                    <div class="col-md-3"><button type="button" id="walkSelect" class="btn btn-default">Walk</button></div>
-
-                </div>
-
-                <div id="trip-info-wrapper">
-
-                    <p align="center">Trip Information</p>
-
-                    <div class="row">
-                        <div class="col-md-9">Distance</div>
-                        <div class="col-md-3">10km</div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-9">Time</div>
-                        <div class="col-md-3">1:34</div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-9">CO2 Emmissions</div>
-                        <div class="col-md-3">0</div>
-                    </div>
-
-                </div>
-
             </form>
         </div>
 
@@ -117,6 +71,8 @@
             var busCO2          = 0.0891;
             var lightRailCO2    = 0.0650;
             var railCO2         = 0.0602;
+            var map, geocoder, timeoutHandler, fromMarker, toMarker, directionsDisplay, directionsService;
+
             // Source: http://www.aef.org.uk/downloads/Grams_CO2_transportmodesUK.pdf
 
             // use default car co2
@@ -138,9 +94,175 @@
                     }, 3000)
                 }
 
-            })
+            });
 
+            $('#from').on('keyup', function() {
+                if ($(this).val() != '') {
+                    pk_setPositionFromAddress($(this).val(), 'from');
+                }
+            });
+
+            $('#to').on('keyup', function() {
+                if ($(this).val() != '') {
+                    pk_setPositionFromAddress($(this).val(), 'to');
+                }
+            });
+
+            $('#from').on('blur', function() {
+                if ($(this).val() != '') {
+                    clearTimeout(timeoutHandler);
+                    pk_codeAddress($(this).val(), 'from');
+                }
+            });
+
+            $('#to').on('blur', function() {
+                if ($(this).val() != '') {
+                    clearTimeout(timeoutHandler);
+                    pk_codeAddress($(this).val(), 'to');
+                }
+            });
+
+            $('#travel-mode>.btn').on('click', function(e) {
+                e.preventDefault();
+                $('#travel-mode>.btn').removeClass('active');
+                $(this).addClass('active');
+
+                if (fromMarker != undefined && toMarker != undefined) {
+                    pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                }
+            });
+
+            pk_initMap = function() {
+                geocoder = new google.maps.Geocoder();
+                directionsDisplay = new google.maps.DirectionsRenderer({ suppressMarkers: true });
+                directionsService = new google.maps.DirectionsService;
+                var defaultLatLang = { lat: 55.953251, lng: -3.188267 };
+
+                map = new google.maps.Map(document.getElementById('map-wrapper'), {
+                    center: defaultLatLang,
+                    zoom: 8
+                });
+
+                directionsDisplay.setMap(map);
+
+                map.addListener('click', function(e) {
+                    setFromMarker(e.latLng);
+                });
+
+                map.addListener('rightclick', function(e) {
+                    setToMarker(e.latLng);
+                });
+
+                setFromMarker = function(position) {
+                    if (fromMarker === undefined) {
+                        fromMarker = new google.maps.Marker({
+                            map: map,
+                            draggable: true,
+                            aimation: google.maps.Animation.DROP,
+                            position: position,
+                            title: 'from',
+                            icon: 'resources/from_marker.png'
+                        });
+                    } else {
+                        fromMarker.setPosition(position);
+                    }
+
+                    pk_decodeAddress(fromMarker.getPosition(), 'from');
+
+                    if (toMarker != undefined)
+                        pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                }
+
+                setToMarker = function(position) {
+                    if (toMarker === undefined) {
+                        toMarker = new google.maps.Marker({
+                            map: map,
+                            draggable: true,
+                            aimation: google.maps.Animation.DROP,
+                            position: position,
+                            title: 'to',
+                            icon: 'resources/to_marker.png'
+                        });
+                    } else {
+                        toMarker.setPosition(position);
+                    }
+
+                    pk_decodeAddress(toMarker.getPosition(), 'to');
+
+                    if (fromMarker != undefined)
+                        pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                }
+
+            }
+
+            pk_setPositionFromAddress = function(address, marker) {
+                clearTimeout(timeoutHandler);
+
+                timeoutHandler = setTimeout(function() {
+                    pk_codeAddress(address, marker);
+                }, 2000);
+            }
+
+            pk_codeAddress = function(address, marker) {
+                geocoder.geocode({ 'address': address }, function(results, status) {
+                    if (status == 'OK') {
+                        if (marker == 'from') {
+                            setFromMarker(results[0].geometry.location);
+                        } else if (marker == 'to') {
+                            setToMarker(results[0].geometry.location);
+                        }
+                    } else {
+                        //TODO
+                        console.log(status);
+                    }
+                });
+            }
+
+            pk_decodeAddress = function(position, marker) {
+                geocoder.geocode({ 'location': position}, function(results, status) {
+                    if (status == 'OK') {
+                        if (results[1]) {
+                            if (marker == 'from') {
+                                $('#from').val(results[1].formatted_address);
+                            } else if (marker == 'to') {
+                                $('#to').val(results[1].formatted_address);
+                            }
+                        } else {
+                            console.log('No results found');
+                        }
+                    } else {
+                        console.log(status);
+                    }
+                });
+            }
+
+            pk_calculateAndDisplayRoute = function(directionsService, directionsDisplay) {
+                var selectedMode = $('#travel-mode').find('.active').data('travel-mode');
+                var transitMode = "BUS";
+
+                console.log(selectedMode);
+
+                if (selectedMode == 'BUS' || selectedMode == 'TRAIN') {
+                    transitMode = selectedMode;
+                    selectedMode = 'TRANSIT';
+                }
+
+                directionsService.route({
+                    origin:         fromMarker.getPosition(),
+                    destination:    toMarker.getPosition(),
+                    travelMode:     google.maps.TravelMode[selectedMode],
+                    transitOptions: {
+                        modes: [google.maps.TransitMode[transitMode]]
+                    }
+                }, function(response, status) {
+                    if (status == 'OK') {
+                        directionsDisplay.setDirections(response);
+                    } else {
+                        console.log(status);
+                    }
+                });
+            }
         </script>
-
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBMr9nVH4c531LRJ0QX1S-l2uHwJ8gagyU&callback=pk_initMap" async defer></script>
     </body>
 </html>
