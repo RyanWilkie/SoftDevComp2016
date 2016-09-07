@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html>
     <head>
@@ -314,3 +315,327 @@
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBMr9nVH4c531LRJ0QX1S-l2uHwJ8gagyU&callback=pk_initMap" async defer></script>
     </body>
 </html>
+=======
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Soft Dev Challenge 2016</title>
+
+        <!-- Latest compiled and minified CSS -->
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+        <script   src="https://code.jquery.com/jquery-3.1.0.min.js"   integrity="sha256-cCueBR6CsyA4/9szpPfrX3s49M9vUU5BgtiJj06wt/s="   crossorigin="anonymous"></script>
+
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+        <link rel="stylesheet" href="css/style.css">
+
+    </head>
+    <body>
+        <h1>Automotive<span class="last-word">Evolution</span></h1>
+        <div id="map-wrapper"></div>
+        <div id="car-details-wrapper">
+            <form>
+                <div class="form-group">
+                    <label for="from">From</label>
+                    <input type="text" class="form-control" id="from" placeholder="Start Position" >
+                </div>
+
+                <div class="form-group">
+                    <label for="to">To</label>
+                    <input type="text" class="form-control" id="to" placeholder="End Position" >
+                </div>
+
+                <div class="form-group">
+                    <input type="text" class="form-control" id="regNo" placeholder="Car Registration Number" >
+                </div>
+
+                <button type="button" id="useCar" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="left" data-content="You must enter a car registration to use this." trigger="manual" data-loading-text="Loading...">Use my car</button>
+
+                <div id="travel-mode" class="form-group">
+                    <button class="btn btn-success active" id="car" data-travel-mode="DRIVING">Car</button>
+                    <button class="btn btn-success" id="bus" data-travel-mode="BUS">Bus</button>
+                    <button class="btn btn-success" id="train" data-travel-mode="TRAIN">Train</button>
+                    <button class="btn btn-success" id="car" data-travel-mode="WALKING">Walk</button>
+                </div>
+
+                <div id="trip-info-wrapper">
+
+                    <p align="center">Trip Information</p>
+
+                    <div class="row">
+                        <div class="col-md-8">Distance</div>
+                        <div class="col-md-4" id="distance">10km</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">Time</div>
+                        <div class="col-md-4" id="time">1:34</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">CO2 Emissions</div>
+                        <div class="col-md-4" id="co2Emissions">0</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">CO2 Emissions for Journey</div>
+                        <div class="col-md-4" id="journeyCo2Emissions"></div>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+
+        <script type="text/javascript">
+
+            var myCarCO2        = 0.0;
+            var avgCarCO2       = 180;
+            var busCO2          = 89.1;
+            var lightRailCO2    = 65;
+            var railCO2         = 60.2;
+            var map, geocoder, timeoutHandler, fromMarker, toMarker, directionsDisplay, directionsService;
+
+            // Source: http://www.aef.org.uk/downloads/Grams_CO2_transportmodesUK.pdf
+
+            // use default car co2
+            rw_updateCO2EmissionDisplay(avgCarCO2)
+
+            function rw_calcCO2Usage(distance, co2) {
+
+                return co2 / distance;
+
+            }
+
+            function rw_updateCO2EmissionDisplay(CO2) {
+                $("#co2Emissions").html(CO2 + " g/km")
+            }
+
+            $("#useCar").on("click", function() {
+
+                if ($("#regNo").val() == "") {
+                    $(this).popover('toggle')
+
+                    setTimeout(function() {
+                        $("#useCar").popover('toggle')
+                    }, 3000)
+                } else {
+
+                    $("#useCar").button('loading')
+
+                    $.get("callAPIDev.php", {regno: $("#regNo").val()}, function(data) {
+                        var vehicleDetails = data.split(",")
+
+                        rw_updateCO2EmissionDisplay(vehicleDetails[2])
+                        myCarCO2 = vehicleDetails[2]
+
+                        $("#useCar").button('reset')
+                    })
+
+                }
+
+            });
+
+            $('#from').on('keyup', function() {
+                if ($(this).val() != '') {
+                    pk_setPositionFromAddress($(this).val(), 'from');
+                }
+            });
+
+            $('#to').on('keyup', function() {
+                if ($(this).val() != '') {
+                    pk_setPositionFromAddress($(this).val(), 'to');
+                }
+            });
+
+            $('#from').on('blur', function() {
+                if ($(this).val() != '') {
+                    clearTimeout(timeoutHandler);
+                    pk_codeAddress($(this).val(), 'from');
+                }
+            });
+
+            $('#to').on('blur', function() {
+                if ($(this).val() != '') {
+                    clearTimeout(timeoutHandler);
+                    pk_codeAddress($(this).val(), 'to');
+                }
+            });
+
+            $("#co2Emissions").on("change", function() {
+
+                var distance = $("#distance").html()
+                var co2 = $("#co2Emissions").html()
+
+                $("#journeyCo2Emissions").html(rw_calcCO2Usage(distance.substring(0, distance.length - 2), co2.substring(0, co2.length - 5)) + "g")
+
+            })
+
+            $('#travel-mode>.btn').on('click', function(e) {
+                e.preventDefault();
+                $('#travel-mode>.btn').removeClass('active');
+                $(this).addClass('active');
+
+                if (fromMarker != undefined && toMarker != undefined) {
+                    pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                }
+
+                switch ($(this).attr("data-travel-mode")) {
+                    case "DRIVING":
+
+                        if (myCarCO2 == 0.0) {
+                            rw_updateCO2EmissionDisplay(avgCarCO2)
+                        } else {
+                            rw_updateCO2EmissionDisplay(myCarCO2)
+                        }
+
+                        break;
+                    case "BUS":
+                        rw_updateCO2EmissionDisplay(busCO2)
+                        break;
+                    case "TRAIN":
+                        rw_updateCO2EmissionDisplay(railCO2)
+                        break;
+                    case "WALKING":
+                        rw_updateCO2EmissionDisplay(0)
+                        break;
+                }
+            });
+
+            pk_initMap = function() {
+                geocoder = new google.maps.Geocoder();
+                directionsDisplay = new google.maps.DirectionsRenderer({ suppressMarkers: true });
+                directionsService = new google.maps.DirectionsService;
+                var defaultLatLang = { lat: 55.953251, lng: -3.188267 };
+
+                map = new google.maps.Map(document.getElementById('map-wrapper'), {
+                    center: defaultLatLang,
+                    zoom: 8
+                });
+
+                directionsDisplay.setMap(map);
+
+                map.addListener('click', function(e) {
+                    setFromMarker(e.latLng);
+                });
+
+                map.addListener('rightclick', function(e) {
+                    setToMarker(e.latLng);
+                });
+
+                setFromMarker = function(position) {
+                    if (fromMarker === undefined) {
+                        fromMarker = new google.maps.Marker({
+                            map: map,
+                            draggable: true,
+                            aimation: google.maps.Animation.DROP,
+                            position: position,
+                            title: 'from',
+                            icon: 'resources/from_marker.png'
+                        });
+                    } else {
+                        fromMarker.setPosition(position);
+                    }
+
+                    pk_decodeAddress(fromMarker.getPosition(), 'from');
+
+                    if (toMarker != undefined)
+                        pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                }
+
+                setToMarker = function(position) {
+                    if (toMarker === undefined) {
+                        toMarker = new google.maps.Marker({
+                            map: map,
+                            draggable: true,
+                            aimation: google.maps.Animation.DROP,
+                            position: position,
+                            title: 'to',
+                            icon: 'resources/to_marker.png'
+                        });
+                    } else {
+                        toMarker.setPosition(position);
+                    }
+
+                    pk_decodeAddress(toMarker.getPosition(), 'to');
+
+                    if (fromMarker != undefined)
+                        pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                }
+
+            }
+
+            pk_setPositionFromAddress = function(address, marker) {
+                clearTimeout(timeoutHandler);
+
+                timeoutHandler = setTimeout(function() {
+                    pk_codeAddress(address, marker);
+                }, 2000);
+            }
+
+            pk_codeAddress = function(address, marker) {
+                geocoder.geocode({ 'address': address }, function(results, status) {
+                    if (status == 'OK') {
+                        if (marker == 'from') {
+                            setFromMarker(results[0].geometry.location);
+                        } else if (marker == 'to') {
+                            setToMarker(results[0].geometry.location);
+                        }
+                    } else {
+                        //TODO
+                        console.log(status);
+                    }
+                });
+            }
+
+            pk_decodeAddress = function(position, marker) {
+                geocoder.geocode({ 'location': position}, function(results, status) {
+                    if (status == 'OK') {
+                        if (results[1]) {
+                            if (marker == 'from') {
+                                $('#from').val(results[1].formatted_address);
+                            } else if (marker == 'to') {
+                                $('#to').val(results[1].formatted_address);
+                            }
+                        } else {
+                            console.log('No results found');
+                        }
+                    } else {
+                        console.log(status);
+                    }
+                });
+            }
+
+            pk_calculateAndDisplayRoute = function(directionsService, directionsDisplay) {
+                var selectedMode = $('#travel-mode').find('.active').data('travel-mode');
+                var transitMode = "BUS";
+
+                console.log(selectedMode);
+
+                if (selectedMode == 'BUS' || selectedMode == 'TRAIN') {
+                    transitMode = selectedMode;
+                    selectedMode = 'TRANSIT';
+                }
+
+                directionsService.route({
+                    origin:         fromMarker.getPosition(),
+                    destination:    toMarker.getPosition(),
+                    travelMode:     google.maps.TravelMode[selectedMode],
+                    transitOptions: {
+                        modes: [google.maps.TransitMode[transitMode]]
+                    }
+                }, function(response, status) {
+                    if (status == 'OK') {
+                        directionsDisplay.setDirections(response);
+                    } else {
+                        console.log(status);
+                    }
+                });
+            }
+        </script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBMr9nVH4c531LRJ0QX1S-l2uHwJ8gagyU&callback=pk_initMap" async defer></script>
+    </body>
+</html>
+>>>>>>> 32eb842e3e4c668fc5087a9e1955e8860a140a35
