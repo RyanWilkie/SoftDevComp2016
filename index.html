@@ -155,6 +155,9 @@
                     } else {
                         fromMarker.setPosition(position);
                     }
+
+                    pk_decodeAddress(fromMarker.getPosition());
+
                     if (toMarker != undefined)
                         pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
                 }
@@ -197,6 +200,20 @@
                         }
                     } else {
                         //TODO
+                        console.log(status);
+                    }
+                });
+            }
+
+            pk_decodeAddress = function(position) {
+                geocoder.geocode({ 'location': position}, function(results, status) {
+                    if (status == 'OK') {
+                        if (results[1]) {
+                            $('#from').val(results[1].formatted_address);
+                        } else {
+                            console.log('No results found');
+                        }
+                    } else {
                         console.log(status);
                     }
                 });
