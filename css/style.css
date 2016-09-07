@@ -1,16 +1,42 @@
 #map-wrapper {
-    width: 200px;
-    height: 300px;
+    width: 800px;
+    height: 700px;
     background-color: blue;
 }
 
 #car-details-wrapper {
     width:300px;
+    margin-left: 10px;
 }
 
 #map-wrapper,
 #car-details-wrapper {
     float: left;
+}
+
+#regNo {
+    margin-top: 75px;
+}
+
+#transport-selector-wrapper {
+    margin-top: 25px;
+}
+
+#trip-info-wrapper {
+    margin: 0 auto;
+    margin-top: 50px;
+}
+
+#travel-mode {
+    margin-top: 12px;
+}
+
+#travel-mode > .btn {
+    width: 70px;
+}
+
+#travel-mode > .active {
+    color: black;
 }
 
 .form-control[readonly] {
