@@ -32,6 +32,14 @@
     margin-top: 12px;
 }
 
+#travel-mode > .btn {
+    width: 70px;
+}
+
+#travel-mode > .active {
+    color: black;
+}
+
 .form-control[readonly] {
     background-color: #fff;
 }

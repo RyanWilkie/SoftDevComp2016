@@ -126,6 +126,10 @@
                 e.preventDefault();
                 $('#travel-mode>.btn').removeClass('active');
                 $(this).addClass('active');
+
+                if (fromMarker != undefined && toMarker != undefined) {
+                    pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                }
             });
 
             pk_initMap = function() {
@@ -163,7 +167,7 @@
                         fromMarker.setPosition(position);
                     }
 
-                    pk_decodeAddress(fromMarker.getPosition());
+                    pk_decodeAddress(fromMarker.getPosition(), 'from');
 
                     if (toMarker != undefined)
                         pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
@@ -182,6 +186,8 @@
                     } else {
                         toMarker.setPosition(position);
                     }
+
+                    pk_decodeAddress(toMarker.getPosition(), 'to');
 
                     if (fromMarker != undefined)
                         pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
@@ -212,11 +218,15 @@
                 });
             }
 
-            pk_decodeAddress = function(position) {
+            pk_decodeAddress = function(position, marker) {
                 geocoder.geocode({ 'location': position}, function(results, status) {
                     if (status == 'OK') {
                         if (results[1]) {
-                            $('#from').val(results[1].formatted_address);
+                            if (marker == 'from') {
+                                $('#from').val(results[1].formatted_address);
+                            } else if (marker == 'to') {
+                                $('#to').val(results[1].formatted_address);
+                            }
                         } else {
                             console.log('No results found');
                         }
