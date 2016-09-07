@@ -20,6 +20,7 @@
         <div id="car-details-wrapper">
             <form>
                 <div class="form-group">
+<<<<<<< HEAD
                     <!-- <label for="inputDistance">Distance</label> -->
                     <input type="text" class="form-control" id="startLoc" placeholder="Select Start Location" >
                 </div>
@@ -64,6 +65,20 @@
                         <div class="col-md-3">0</div>
                     </div>
 
+=======
+                    <label for="inputDistance">Distance</label>
+                    <input type="text" class="form-control" id="inputDistance" placeholder="0" >
+                </div>
+
+                <div class="form-group">
+                    <label for="inputCO2">CO&#8322;/km</label>
+                    <input type="text" class="form-control" id="inputCO2" placeholder="0" >
+                </div>
+
+                <div class="form-group">
+                    <label for="inputCO2Usage">CO&#8322; used</label>
+                    <input type="text" class="form-control" id="inputCO2Usage" placeholder="0" >
+>>>>>>> dce52bfc4a17e7a1806e858abadb3263a891e3ec
                 </div>
 
             </form>
@@ -75,10 +90,13 @@
             var busCO2          = 0.0891;
             var lightRailCO2    = 0.0650;
             var railCO2         = 0.0602;
+<<<<<<< HEAD
             // Source: http://www.aef.org.uk/downloads/Grams_CO2_transportmodesUK.pdf
 
             // use default car co2
             $("#inputCO2").val(avgCarCO2)
+=======
+>>>>>>> dce52bfc4a17e7a1806e858abadb3263a891e3ec
 
             function rw_calcCO2Usage(distance, co2) {
 
@@ -86,6 +104,7 @@
 
             }
 
+<<<<<<< HEAD
             $("#useCar").on("click", function() {
 
                 if ($("#regNo").val() == "") {
@@ -94,6 +113,24 @@
                     setTimeout(function() {
                         $("#useCar").popover('toggle')
                     }, 3000)
+=======
+            $("#inputDistance").on("change", function() {
+
+                console.log("distance changed")
+
+                if ($("#inputCO2").val() != "") {
+                    $("#inputCO2Usage").val(rw_calcCO2Usage($(this).val(), $("#inputCO2").val()));
+                }
+
+            })
+
+            $("#inputCO2").on("change", function() {
+
+                console.log("co2 changed")
+
+                if ($("#inputDistance").val() != "") {
+                    $("#inputCO2Usage").val(rw_calcCO2Usage($("#inputDistance").val(), $(this).val()));
+>>>>>>> dce52bfc4a17e7a1806e858abadb3263a891e3ec
                 }
 
             })
