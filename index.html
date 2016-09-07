@@ -48,17 +48,22 @@
 
                     <div class="row">
                         <div class="col-md-8">Distance</div>
-                        <div class="col-md-4">10km</div>
+                        <div class="col-md-4" id="distance">10km</div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-8">Time</div>
-                        <div class="col-md-4">1:34</div>
+                        <div class="col-md-4" id="time">1:34</div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-8">CO2 Emmissions</div>
                         <div class="col-md-4" id="co2Emissions">0</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-8">CO2 Emmissions for Journey</div>
+                        <div class="col-md-4" id="journeyCo2Emissions"></div>
                     </div>
 
                 </div>
@@ -68,21 +73,25 @@
         <script type="text/javascript">
 
             var myCarCO2        = 0.0;
-            var avgCarCO2       = 0.18;
-            var busCO2          = 0.0891;
-            var lightRailCO2    = 0.0650;
-            var railCO2         = 0.0602;
+            var avgCarCO2       = 180;
+            var busCO2          = 89.1;
+            var lightRailCO2    = 65;
+            var railCO2         = 60.2;
             var map, geocoder, timeoutHandler, fromMarker, toMarker, directionsDisplay, directionsService;
 
             // Source: http://www.aef.org.uk/downloads/Grams_CO2_transportmodesUK.pdf
 
             // use default car co2
-            $("#inputCO2").val(avgCarCO2)
+            rw_updateCO2EmissionDisplay(avgCarCO2)
 
             function rw_calcCO2Usage(distance, co2) {
 
                 return co2 / distance;
 
+            }
+
+            function rw_updateCO2EmissionDisplay(CO2) {
+                $("#co2Emissions").html(CO2 + " g/km")
             }
 
             $("#useCar").on("click", function() {
@@ -100,7 +109,8 @@
                     $.get("callAPIDev.php", {regno: $("#regNo").val()}, function(data) {
                         var vehicleDetails = data.split(",")
 
-                        $("#co2Emissions").html(vehicleDetails[2] + " g/km")
+                        rw_updateCO2EmissionDisplay(vehicleDetails[2])
+                        myCarCO2 = vehicleDetails[2]
 
                         $("#useCar").button('reset')
                     })
@@ -135,6 +145,15 @@
                 }
             });
 
+            $("#co2Emissions").on("change", function() {
+
+                var distance = $("#distance").html()
+                var co2 = $("#co2Emissions").html()
+
+                $("#journeyCo2Emissions").html(rw_calcCO2Usage(distance.substring(0, distance.length - 2), co2.substring(0, co2.length - 5)) + "g")
+
+            })
+
             $('#travel-mode>.btn').on('click', function(e) {
                 e.preventDefault();
                 $('#travel-mode>.btn').removeClass('active');
@@ -142,6 +161,27 @@
 
                 if (fromMarker != undefined && toMarker != undefined) {
                     pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                }
+
+                switch ($(this).attr("data-travel-mode")) {
+                    case "DRIVING":
+
+                        if (myCarCO2 == 0.0) {
+                            rw_updateCO2EmissionDisplay(avgCarCO2)
+                        } else {
+                            rw_updateCO2EmissionDisplay(myCarCO2)
+                        }
+
+                        break;
+                    case "BUS":
+                        rw_updateCO2EmissionDisplay(busCO2)
+                        break;
+                    case "TRAIN":
+                        rw_updateCO2EmissionDisplay(railCO2)
+                        break;
+                    case "WALKING":
+                        rw_updateCO2EmissionDisplay(0)
+                        break;
                 }
             });
 
