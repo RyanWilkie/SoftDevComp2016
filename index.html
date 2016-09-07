@@ -30,10 +30,10 @@
                 </div>
 
                 <div class="form-group">
-                    <input type="text" class="form-control" id="regNo" placeholder="Car Resgistration Number" >
+                    <input type="text" class="form-control" id="regNo" placeholder="Car Registration Number" >
                 </div>
 
-                <button type="button" id="useCar" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="left" data-content="You must enter a car registration to use this." trigger="manual">Use my car</button>
+                <button type="button" id="useCar" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="left" data-content="You must enter a car registration to use this." trigger="manual" data-loading-text="Loading...">Use my car</button>
 
                 <div id="travel-mode" class="form-group">
                     <button class="btn btn-success active" id="car" data-travel-mode="DRIVING">Car</button>
@@ -47,18 +47,18 @@
                     <p align="center">Trip Information</p>
 
                     <div class="row">
-                        <div class="col-md-9">Distance</div>
-                        <div class="col-md-3">10km</div>
+                        <div class="col-md-8">Distance</div>
+                        <div class="col-md-4">10km</div>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-9">Time</div>
-                        <div class="col-md-3">1:34</div>
+                        <div class="col-md-8">Time</div>
+                        <div class="col-md-4">1:34</div>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-9">CO2 Emmissions</div>
-                        <div class="col-md-3">0</div>
+                        <div class="col-md-8">CO2 Emmissions</div>
+                        <div class="col-md-4" id="co2Emissions">0</div>
                     </div>
 
                 </div>
@@ -67,6 +67,7 @@
 
         <script type="text/javascript">
 
+            var myCarCO2        = 0.0;
             var avgCarCO2       = 0.18;
             var busCO2          = 0.0891;
             var lightRailCO2    = 0.0650;
@@ -92,6 +93,18 @@
                     setTimeout(function() {
                         $("#useCar").popover('toggle')
                     }, 3000)
+                } else {
+
+                    $("#useCar").button('loading')
+
+                    $.get("callAPIDev.php", {regno: $("#regNo").val()}, function(data) {
+                        var vehicleDetails = data.split(",")
+
+                        $("#co2Emissions").html(vehicleDetails[2] + " g/km")
+
+                        $("#useCar").button('reset')
+                    })
+
                 }
 
             });
