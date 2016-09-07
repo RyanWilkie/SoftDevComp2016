@@ -86,12 +86,16 @@
 
             function rw_calcCO2Usage(distance, co2) {
 
-                return co2 / distance;
+                return co2 * distance;
 
             }
 
             function rw_updateCO2EmissionDisplay(CO2) {
                 $("#co2Emissions").html(CO2 + " g/km")
+
+                var distance = $("#distance").html()
+
+                $("#journeyCo2Emissions").html(rw_calcCO2Usage(distance.substring(0, distance.length - 2), CO2) + "g")
             }
 
             $("#useCar").on("click", function() {
@@ -144,15 +148,6 @@
                     pk_codeAddress($(this).val(), 'to');
                 }
             });
-
-            $("#co2Emissions").on("change", function() {
-
-                var distance = $("#distance").html()
-                var co2 = $("#co2Emissions").html()
-
-                $("#journeyCo2Emissions").html(rw_calcCO2Usage(distance.substring(0, distance.length - 2), co2.substring(0, co2.length - 5)) + "g")
-
-            })
 
             $('#travel-mode>.btn').on('click', function(e) {
                 e.preventDefault();
