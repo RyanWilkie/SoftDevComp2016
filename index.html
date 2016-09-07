@@ -20,6 +20,52 @@
         <div id="car-details-wrapper">
             <form>
                 <div class="form-group">
+<<<<<<< HEAD
+                    <!-- <label for="inputDistance">Distance</label> -->
+                    <input type="text" class="form-control" id="startLoc" placeholder="Select Start Location" >
+                </div>
+
+                <div class="form-group">
+                    <!-- <label for="inputCO2">CO&#8322;/km</label> -->
+                    <input type="text" class="form-control" id="destLoc" placeholder="Select Destination" >
+                </div>
+
+                <div class="form-group">
+                    <!-- <label for="inputCO2Usage">CO&#8322; used</label> -->
+                    <input type="text" class="form-control" id="regNo" placeholder="Car Resgistration Number" >
+                </div>
+
+                <button type="button" id="useCar" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="left" data-content="You must enter a car registration to use this." trigger="manual">Use my car</button>
+
+                <div class="row" id="transport-selector-wrapper">
+
+                    <div class="col-md-3"><button type="button" id="carSelect" class="btn btn-default">Car</button></div>
+                    <div class="col-md-3"><button type="button" id="busSelect" class="btn btn-default">Bus</button></div>
+                    <div class="col-md-3"><button type="button" id="trainSelect" class="btn btn-default">Train</button></div>
+                    <div class="col-md-3"><button type="button" id="walkSelect" class="btn btn-default">Walk</button></div>
+
+                </div>
+
+                <div id="trip-info-wrapper">
+
+                    <p align="center">Trip Information</p>
+
+                    <div class="row">
+                        <div class="col-md-9">Distance</div>
+                        <div class="col-md-3">10km</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-9">Time</div>
+                        <div class="col-md-3">1:34</div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-9">CO2 Emmissions</div>
+                        <div class="col-md-3">0</div>
+                    </div>
+
+=======
                     <label for="inputDistance">Distance</label>
                     <input type="text" class="form-control" id="inputDistance" placeholder="0" >
                 </div>
@@ -32,9 +78,9 @@
                 <div class="form-group">
                     <label for="inputCO2Usage">CO&#8322; used</label>
                     <input type="text" class="form-control" id="inputCO2Usage" placeholder="0" >
+>>>>>>> dce52bfc4a17e7a1806e858abadb3263a891e3ec
                 </div>
 
-                <button type="submit" class="btn btn-default">Use my car</button>
             </form>
         </div>
 
@@ -44,6 +90,13 @@
             var busCO2          = 0.0891;
             var lightRailCO2    = 0.0650;
             var railCO2         = 0.0602;
+<<<<<<< HEAD
+            // Source: http://www.aef.org.uk/downloads/Grams_CO2_transportmodesUK.pdf
+
+            // use default car co2
+            $("#inputCO2").val(avgCarCO2)
+=======
+>>>>>>> dce52bfc4a17e7a1806e858abadb3263a891e3ec
 
             function rw_calcCO2Usage(distance, co2) {
 
@@ -51,6 +104,16 @@
 
             }
 
+<<<<<<< HEAD
+            $("#useCar").on("click", function() {
+
+                if ($("#regNo").val() == "") {
+                    $(this).popover('toggle')
+
+                    setTimeout(function() {
+                        $("#useCar").popover('toggle')
+                    }, 3000)
+=======
             $("#inputDistance").on("change", function() {
 
                 console.log("distance changed")
@@ -67,6 +130,7 @@
 
                 if ($("#inputDistance").val() != "") {
                     $("#inputCO2Usage").val(rw_calcCO2Usage($("#inputDistance").val(), $(this).val()));
+>>>>>>> dce52bfc4a17e7a1806e858abadb3263a891e3ec
                 }
 
             })
