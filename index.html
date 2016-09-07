@@ -171,7 +171,7 @@
                     pk_decodeAddress(fromMarker.getPosition(), 'from');
 
                     if (toMarker != undefined) {
-                        pk_calculateAndDisplayRoute(directionsService, directionsDisplay, fromMarker, fromMarker.getPosition());
+                        pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
                     }
                 }
 
@@ -270,7 +270,7 @@
                 });
             }
 
-            pk_calculateAndDisplayRoute = function(directionsService, directionsDisplay, oldMarker, oldMarkerPosition) {
+            pk_calculateAndDisplayRoute = function(directionsService, directionsDisplay) {
                 var selectedMode = $('#travel-mode').find('.active').data('travel-mode');
                 var transitMode = "BUS";
 
@@ -292,8 +292,6 @@
                         pk_getDistance(selectedMode);
                     } else {
                         console.log('no route' + status);
-                        console.log(oldMarkerPosition);
-                        oldMarker.setPosition(oldMarkerPosition);
                     }
                 });
             }
