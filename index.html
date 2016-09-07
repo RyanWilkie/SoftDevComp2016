@@ -47,18 +47,18 @@
                     <p align="center">Trip Information</p>
 
                     <div class="row">
-                        <div class="col-md-9">Distance</div>
-                        <div class="col-md-3">10km</div>
+                        <div class="col-md-4">Distance</div>
+                        <div id="distance" class="col-md-6">10km</div>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-9">Time</div>
-                        <div class="col-md-3">1:34</div>
+                        <div class="col-md-4">Time</div>
+                        <div id="time" class="col-md-6">1:34</div>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-9">CO2 Emmissions</div>
-                        <div class="col-md-3">0</div>
+                        <div class="col-md-4">CO2 Emmissions</div>
+                        <div class="col-md-6">0</div>
                     </div>
 
                 </div>
@@ -71,7 +71,8 @@
             var busCO2          = 0.0891;
             var lightRailCO2    = 0.0650;
             var railCO2         = 0.0602;
-            var map, geocoder, timeoutHandler, fromMarker, toMarker, directionsDisplay, directionsService;
+            var map, geocoder, timeoutHandler, fromMarker, toMarker, directionsDisplay, directionsService, distanceMatrix;
+            var travel = {}
 
             // Source: http://www.aef.org.uk/downloads/Grams_CO2_transportmodesUK.pdf
 
@@ -122,7 +123,7 @@
                 }
             });
 
-            $('#travel-mode>.btn').on('click', function(e) {
+            $('#travel-mode > .btn').on('click', function(e) {
                 e.preventDefault();
                 $('#travel-mode>.btn').removeClass('active');
                 $(this).addClass('active');
@@ -169,8 +170,9 @@
 
                     pk_decodeAddress(fromMarker.getPosition(), 'from');
 
-                    if (toMarker != undefined)
-                        pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                    if (toMarker != undefined) {
+                        pk_calculateAndDisplayRoute(directionsService, directionsDisplay, fromMarker, fromMarker.getPosition());
+                    }
                 }
 
                 setToMarker = function(position) {
@@ -189,10 +191,42 @@
 
                     pk_decodeAddress(toMarker.getPosition(), 'to');
 
-                    if (fromMarker != undefined)
-                        pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                    if (fromMarker != undefined) {
+                        pk_calculateAndDisplayRoute(directionsService, directionsDisplay, toMarker, toMarker.getPosition());
+                    }
                 }
 
+                distanceMatrix = new google.maps.DistanceMatrixService();
+
+            }
+
+            pk_getDistance = function(selectedMode) {
+                var transitMode = "BUS";
+
+                if (selectedMode == 'BUS' || selectedMode == 'TRAIN') {
+                    transitMode = selectedMode;
+                    selectedMode = 'TRANSIT';
+                }
+                distanceMatrix.getDistanceMatrix({
+                    origins:        [fromMarker.getPosition()],
+                    destinations:   [toMarker.getPosition()],
+                    travelMode:     selectedMode,
+                    transitOptions: { modes: [transitMode] }
+                }, pk_returnDistance);
+            }
+
+            pk_returnDistance = function(response, status) {
+                var results = response.rows[0].elements[0];
+
+                if (status = 'OK') {
+                    travel.distanceForHuman = results.distance.text;
+                    travel.distance = results.distance.value;
+                    travel.durationForHuman = results.duration.text;
+                    travel.duration = results.duration.value;
+                }
+
+                $('#distance').text(travel.distanceForHuman);
+                $('#time').text(travel.durationForHuman);
             }
 
             pk_setPositionFromAddress = function(address, marker) {
@@ -213,7 +247,7 @@
                         }
                     } else {
                         //TODO
-                        console.log(status);
+                        console.log('wrong address:' + status);
                     }
                 });
             }
@@ -231,16 +265,14 @@
                             console.log('No results found');
                         }
                     } else {
-                        console.log(status);
+                        console.log('cannot decode' + status);
                     }
                 });
             }
 
-            pk_calculateAndDisplayRoute = function(directionsService, directionsDisplay) {
+            pk_calculateAndDisplayRoute = function(directionsService, directionsDisplay, oldMarker, oldMarkerPosition) {
                 var selectedMode = $('#travel-mode').find('.active').data('travel-mode');
                 var transitMode = "BUS";
-
-                console.log(selectedMode);
 
                 if (selectedMode == 'BUS' || selectedMode == 'TRAIN') {
                     transitMode = selectedMode;
@@ -257,8 +289,11 @@
                 }, function(response, status) {
                     if (status == 'OK') {
                         directionsDisplay.setDirections(response);
+                        pk_getDistance(selectedMode);
                     } else {
-                        console.log(status);
+                        console.log('no route' + status);
+                        console.log(oldMarkerPosition);
+                        oldMarker.setPosition(oldMarkerPosition);
                     }
                 });
             }
