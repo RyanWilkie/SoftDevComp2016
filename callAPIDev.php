@@ -14,6 +14,8 @@
 
     curl_close($curl);
 
-    var_dump($resp);
+    $res = json_decode($resp, true);
+
+    echo $res["DataItems"]["Make"] . "," . $res["DataItems"]["Model"] . "," . $res["DataItems"]["Emission"];
 
  ?>
