@@ -58,7 +58,7 @@
 
                     <div class="row">
                         <div class="col-md-4">CO2 Emmissions</div>
-                        <div class="col-md-6">0</div>
+                        <div class="col-md-6" id="co2Emissions">0</div>
                     </div>
 
                     <div class="row">
@@ -81,17 +81,16 @@
 
             // Source: http://www.aef.org.uk/downloads/Grams_CO2_transportmodesUK.pdf
 
-            // use default car co2
-            rw_updateCO2EmissionDisplay(avgCarCO2)
-
             function rw_calcCO2Usage(distance, co2) {
 
-                return co2 / distance;
+                return co2 * distance;
 
             }
 
             function rw_updateCO2EmissionDisplay(CO2) {
                 $("#co2Emissions").html(CO2 + " g/km")
+
+                $("#journeyCo2Emissions").html(rw_calcCO2Usage(pk_getDistance(), CO2))
             }
 
             $("#useCar").on("click", function() {
@@ -339,6 +338,9 @@
                     }
                 });
             }
+
+            // use default car co2
+            rw_updateCO2EmissionDisplay(avgCarCO2)
         </script>
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBMr9nVH4c531LRJ0QX1S-l2uHwJ8gagyU&callback=pk_initMap" async defer></script>
     </body>
