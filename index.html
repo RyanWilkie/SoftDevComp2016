@@ -77,6 +77,7 @@
             var busCO2          = 89.1;
             var lightRailCO2    = 65;
             var railCO2         = 60.2;
+            var walkingCO2      = 25.0;
             var map, geocoder, timeoutHandler, fromMarker, toMarker, directionsDisplay, directionsService, distanceMatrix;
             var travel = {};
 
@@ -175,7 +176,7 @@
                         rw_updateCO2EmissionDisplay(railCO2)
                         break;
                     case "WALKING":
-                        rw_updateCO2EmissionDisplay(0)
+                        rw_updateCO2EmissionDisplay(walkingCO2)
                         break;
                 }
             }
