@@ -95,7 +95,7 @@
 
             function rw_updateCO2EmissionDisplay(CO2) {
                 $("#co2Emissions").html(CO2 + " g/km")
-                $("#journeyCo2Emissions").html(rw_calcCO2Usage(travel.distance, CO2))
+                $("#journeyCo2Emissions").html(parseInt(rw_calcCO2Usage(travel.distance / 1000, CO2)) + "g")
             }
 
             $("#useCar").on("click", function() {
