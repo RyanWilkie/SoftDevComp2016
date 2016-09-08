@@ -21,19 +21,19 @@
         </header>
         <div id="map-wrapper"></div>
         <div id="car-details-wrapper">
-        <div id="form-line-wrapper">
-        
-        
             <form>
                 <div class="form-group">
-                    <label for="from"><span class="fromAndToText">From</span></label>
+                    <label for="from">From</label>
                     <input type="text" class="form-control" id="from" placeholder="Start Position" >
-                    <br><span class="fromAndToText">To</span><br>
-                    <input type="text" class="form-control" id="to" placeholder="Destination" >
                 </div>
-                 
-				<div class="form-group">
-          <input type="text" class="form-control" id="regNo" placeholder="Car Registration Number" >
+
+                <div class="form-group">
+                    <label for="to">To</label>
+                    <input type="text" class="form-control" id="to" placeholder="End Position" >
+                </div>
+
+                <div class="form-group">
+                    <input type="text" class="form-control" id="regNo" placeholder="Car Registration Number" >
                 </div>
 
                 <button type="button" id="useCar" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="left" data-content="You must enter a car registration to use this." trigger="manual" data-loading-text="Loading...">Use my car</button>
@@ -42,7 +42,7 @@
                     <button class="btn btn-success active" id="car" data-travel-mode="DRIVING">Car</button>
                     <button class="btn btn-success" id="bus" data-travel-mode="BUS">Bus</button>
                     <button class="btn btn-success" id="train" data-travel-mode="TRAIN">Train</button>
-                    <button class="btn btn-success" id="walk" data-travel-mode="WALKING">Walk</button>
+                    <button class="btn btn-success" id="car" data-travel-mode="WALKING">Walk</button>
                 </div>
 
                 <div id="trip-info-wrapper">
@@ -50,31 +50,28 @@
                     <p align="center">Trip Information</p>
 
                     <div class="row">
-                        <div class="col-md-8">Distance</div>
-                        <div class="col-md-4" id="distance">10km</div>
+                        <div class="col-md-7">Distance</div>
+                        <div id="distance" class="col-md-5">0 km</div>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-8">Time</div>
-                        <div class="col-md-4" id="time">1:34</div>
+                        <div class="col-md-7">Time</div>
+                        <div id="time" class="col-md-5">0 mins</div>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-8">CO2 Emissions</div>
-                        <div class="col-md-4" id="co2Emissions">0</div>
+                        <div class="col-md-7">CO2 Emmissions</div>
+                        <div class="col-md-5" id="co2Emissions">0 g/km</div>
                     </div>
 
                     <div class="row">
-                        <div class="col-md-8">CO2 Emissions for Journey</div>
-                        <div class="col-md-4" id="journeyCo2Emissions"></div>
+                        <div class="col-md-7">CO2 Emissions for Journey</div>
+                        <div class="col-md-5" id="journeyCo2Emissions">0g</div>
                     </div>
 
                 </div>
             </form>
-            </div>
-            
-            </div>
-       
+        </div>
 
         <script type="text/javascript">
 
@@ -83,21 +80,27 @@
             var busCO2          = 89.1;
             var lightRailCO2    = 65;
             var railCO2         = 60.2;
-            var map, geocoder, timeoutHandler, fromMarker, toMarker, directionsDisplay, directionsService;
+            var walkingCO2      = 25.0;
+            var map, geocoder, timeoutHandler, fromMarker, toMarker, directionsDisplay, directionsService, distanceMatrix;
+            var travel = {};
+
+            var messages = {
+                NO_ROUTE: 'No route found for selected type of transport',
+                UNKNOWN_ADDRESS: 'Address cannot be found',
+                UNKNOWN_LOCATION: 'Coordinates provided don&#39;t match any record',
+                UNKNOWN_VEHICLE: 'Vehicle cannot be found in the database.'
+            }
 
             // Source: http://www.aef.org.uk/downloads/Grams_CO2_transportmodesUK.pdf
 
-            // use default car co2
-            rw_updateCO2EmissionDisplay(avgCarCO2)
-
             function rw_calcCO2Usage(distance, co2) {
-
-                return co2 / distance;
+                return co2 * distance;
 
             }
 
             function rw_updateCO2EmissionDisplay(CO2) {
                 $("#co2Emissions").html(CO2 + " g/km")
+                $("#journeyCo2Emissions").html(parseInt(rw_calcCO2Usage(travel.distance / 1000, CO2)) + "g")
             }
 
             $("#useCar").on("click", function() {
@@ -113,10 +116,18 @@
                     $("#useCar").button('loading')
 
                     $.get("callAPIDev.php", {regno: $("#regNo").val()}, function(data) {
+
+                        console.log(data)
+
                         var vehicleDetails = data.split(",")
 
-                        rw_updateCO2EmissionDisplay(vehicleDetails[2])
-                        myCarCO2 = vehicleDetails[2]
+                        if (vehicleDetails[2] == 0 || vehicleDetails[2] == "") {
+                            showError(messages.UNKNOWN_VEHICLE)
+                            myCarCO2 = 0.0;
+                        } else {
+                            rw_updateCO2EmissionDisplay(vehicleDetails[2])
+                            myCarCO2 = vehicleDetails[2]
+                        }
 
                         $("#useCar").button('reset')
                     })
@@ -151,16 +162,7 @@
                 }
             });
 
-            $("#co2Emissions").on("change", function() {
-
-                var distance = $("#distance").html()
-                var co2 = $("#co2Emissions").html()
-
-                $("#journeyCo2Emissions").html(rw_calcCO2Usage(distance.substring(0, distance.length - 2), co2.substring(0, co2.length - 5)) + "g")
-
-            })
-
-            $('#travel-mode>.btn').on('click', function(e) {
+            $('#travel-mode > .btn').on('click', function(e) {
                 e.preventDefault();
                 $('#travel-mode>.btn').removeClass('active');
                 $(this).addClass('active');
@@ -168,16 +170,16 @@
                 if (fromMarker != undefined && toMarker != undefined) {
                     pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
                 }
+            });
 
-                switch ($(this).attr("data-travel-mode")) {
+            pk_calcCo2Value = function(mode) {
+                switch (mode) {
                     case "DRIVING":
-
                         if (myCarCO2 == 0.0) {
                             rw_updateCO2EmissionDisplay(avgCarCO2)
                         } else {
                             rw_updateCO2EmissionDisplay(myCarCO2)
                         }
-
                         break;
                     case "BUS":
                         rw_updateCO2EmissionDisplay(busCO2)
@@ -186,10 +188,10 @@
                         rw_updateCO2EmissionDisplay(railCO2)
                         break;
                     case "WALKING":
-                        rw_updateCO2EmissionDisplay(0)
+                        rw_updateCO2EmissionDisplay(walkingCO2)
                         break;
                 }
-            });
+            }
 
             pk_initMap = function() {
                 geocoder = new google.maps.Geocoder();
@@ -212,6 +214,7 @@
                     setToMarker(e.latLng);
                 });
 
+
                 setFromMarker = function(position) {
                     if (fromMarker === undefined) {
                         fromMarker = new google.maps.Marker({
@@ -222,14 +225,20 @@
                             title: 'from',
                             icon: 'resources/from_marker.png'
                         });
+                        fromMarker.addListener('dragend', function(e) {
+                            if (toMarker != undefined) {
+                                pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                            }
+                        });
                     } else {
                         fromMarker.setPosition(position);
                     }
 
                     pk_decodeAddress(fromMarker.getPosition(), 'from');
 
-                    if (toMarker != undefined)
+                    if (toMarker != undefined) {
                         pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                    }
                 }
 
                 setToMarker = function(position) {
@@ -242,16 +251,61 @@
                             title: 'to',
                             icon: 'resources/to_marker.png'
                         });
+
+                        toMarker.addListener('dragend', function(e) {
+                            if (fromMarker != undefined) {
+                                pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                                }
+                        });
                     } else {
                         toMarker.setPosition(position);
                     }
 
                     pk_decodeAddress(toMarker.getPosition(), 'to');
 
-                    if (fromMarker != undefined)
+                    if (fromMarker != undefined) {
                         pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                    }
                 }
 
+                distanceMatrix = new google.maps.DistanceMatrixService();
+
+            }
+
+            pk_getDistance = function(selectedMode) {
+                var transitMode = "BUS";
+
+                if (selectedMode == 'BUS' || selectedMode == 'TRAIN') {
+                    transitMode = selectedMode;
+                    selectedMode = 'TRANSIT';
+                    travel.mode = transitMode;
+                } else {
+                    travel.mode = selectedMode;
+                }
+
+
+                distanceMatrix.getDistanceMatrix({
+                    origins:        [fromMarker.getPosition()],
+                    destinations:   [toMarker.getPosition()],
+                    travelMode:     selectedMode,
+                    transitOptions: { modes: [transitMode] }
+                }, pk_returnDistance);
+            }
+
+            pk_returnDistance = function(response, status) {
+                var results = response.rows[0].elements[0];
+
+                if (status = 'OK') {
+                    travel.distanceForHuman = results.distance.text;
+                    travel.distance = results.distance.value;
+                    travel.durationForHuman = results.duration.text;
+                    travel.duration = results.duration.value;
+                }
+
+                $('#distance').text(travel.distanceForHuman);
+                $('#time').text(travel.durationForHuman);
+
+                pk_calcCo2Value(travel.mode);
             }
 
             pk_setPositionFromAddress = function(address, marker) {
@@ -259,7 +313,7 @@
 
                 timeoutHandler = setTimeout(function() {
                     pk_codeAddress(address, marker);
-                }, 2000);
+                }, 1000);
             }
 
             pk_codeAddress = function(address, marker) {
@@ -271,8 +325,7 @@
                             setToMarker(results[0].geometry.location);
                         }
                     } else {
-                        //TODO
-                        console.log(status);
+                        showError(messages.UNKNOWN_ADDRESS);
                     }
                 });
             }
@@ -287,10 +340,10 @@
                                 $('#to').val(results[1].formatted_address);
                             }
                         } else {
-                            console.log('No results found');
+                            showError(messages.NO_ROUTE);
                         }
                     } else {
-                        console.log(status);
+                        showError(messages.UNKNOWN_LOCATION);
                     }
                 });
             }
@@ -298,8 +351,6 @@
             pk_calculateAndDisplayRoute = function(directionsService, directionsDisplay) {
                 var selectedMode = $('#travel-mode').find('.active').data('travel-mode');
                 var transitMode = "BUS";
-
-                console.log(selectedMode);
 
                 if (selectedMode == 'BUS' || selectedMode == 'TRAIN') {
                     transitMode = selectedMode;
@@ -316,11 +367,24 @@
                 }, function(response, status) {
                     if (status == 'OK') {
                         directionsDisplay.setDirections(response);
+
+                        if (selectedMode == 'TRANSIT') {
+                            pk_getDistance(transitMode);
+                        } else {
+                            pk_getDistance(selectedMode);
+                        }
                     } else {
-                        console.log(status);
+                        showError(messages.NO_ROUTE);
                     }
                 });
             }
+
+            showError = function(msg) {
+                $('body').append('<div class="error-msg alert alert-danger" style="position: absolute; left: 0; top: 0; z-index: 1001; width: 100%; text-align: center; display: none;"><strong>' + msg + '</strong></div>');
+                $('.error-msg').slideDown();
+                $('.error-msg').delay(3000).slideUp()
+            }
+
         </script>
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBMr9nVH4c531LRJ0QX1S-l2uHwJ8gagyU&callback=pk_initMap" async defer></script>
     </body>
