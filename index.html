@@ -201,6 +201,7 @@
                     setToMarker(e.latLng);
                 });
 
+
                 setFromMarker = function(position) {
                     if (fromMarker === undefined) {
                         fromMarker = new google.maps.Marker({
@@ -210,6 +211,11 @@
                             position: position,
                             title: 'from',
                             icon: 'resources/from_marker.png'
+                        });
+                        fromMarker.addListener('dragend', function(e) {
+                            if (toMarker != undefined) {
+                                pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                            }
                         });
                     } else {
                         fromMarker.setPosition(position);
@@ -231,6 +237,12 @@
                             position: position,
                             title: 'to',
                             icon: 'resources/to_marker.png'
+                        });
+
+                        toMarker.addListener('dragend', function(e) {
+                            if (fromMarker != undefined) {
+                                pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                                }
                         });
                     } else {
                         toMarker.setPosition(position);
