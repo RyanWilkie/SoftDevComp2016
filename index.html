@@ -48,12 +48,12 @@
 
                     <div class="row">
                         <div class="col-md-4">Distance</div>
-                        <div id="distance" class="col-md-6">10km</div>
+                        <div id="distance" class="col-md-6">0</div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-4">Time</div>
-                        <div id="time" class="col-md-6">1:34</div>
+                        <div id="time" class="col-md-6">00:00</div>
                     </div>
 
                     <div class="row">
@@ -77,20 +77,25 @@
             var busCO2          = 89.1;
             var lightRailCO2    = 65;
             var railCO2         = 60.2;
-            var map, geocoder, timeoutHandler, fromMarker, toMarker, directionsDisplay, directionsService;
+            var map, geocoder, timeoutHandler, fromMarker, toMarker, directionsDisplay, directionsService, distanceMatrix;
+            var travel = {};
+
+            var messages = {
+                NO_ROUTE: 'No route found for selected type of transport',
+                UNKNOWN_ADDRESS: 'Address cannot be found',
+                UNKNOWN_LOCATION: 'Coordinates provided don&#39;t match any record'
+            }
 
             // Source: http://www.aef.org.uk/downloads/Grams_CO2_transportmodesUK.pdf
 
             function rw_calcCO2Usage(distance, co2) {
-
                 return co2 * distance;
 
             }
 
             function rw_updateCO2EmissionDisplay(CO2) {
                 $("#co2Emissions").html(CO2 + " g/km")
-
-                $("#journeyCo2Emissions").html(rw_calcCO2Usage(pk_getDistance(), CO2))
+                $("#journeyCo2Emissions").html(rw_calcCO2Usage(travel.distance, CO2))
             }
 
             $("#useCar").on("click", function() {
@@ -145,7 +150,6 @@
             });
 
             $('#travel-mode > .btn').on('click', function(e) {
-
                 e.preventDefault();
                 $('#travel-mode>.btn').removeClass('active');
                 $(this).addClass('active');
@@ -153,16 +157,16 @@
                 if (fromMarker != undefined && toMarker != undefined) {
                     pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
                 }
+            });
 
-                switch ($(this).attr("data-travel-mode")) {
+            pk_calcCo2Value = function(mode) {
+                switch (mode) {
                     case "DRIVING":
-
                         if (myCarCO2 == 0.0) {
                             rw_updateCO2EmissionDisplay(avgCarCO2)
                         } else {
                             rw_updateCO2EmissionDisplay(myCarCO2)
                         }
-
                         break;
                     case "BUS":
                         rw_updateCO2EmissionDisplay(busCO2)
@@ -174,7 +178,7 @@
                         rw_updateCO2EmissionDisplay(0)
                         break;
                 }
-            });
+            }
 
             pk_initMap = function() {
                 geocoder = new google.maps.Geocoder();
@@ -197,6 +201,7 @@
                     setToMarker(e.latLng);
                 });
 
+
                 setFromMarker = function(position) {
                     if (fromMarker === undefined) {
                         fromMarker = new google.maps.Marker({
@@ -206,6 +211,11 @@
                             position: position,
                             title: 'from',
                             icon: 'resources/from_marker.png'
+                        });
+                        fromMarker.addListener('dragend', function(e) {
+                            if (toMarker != undefined) {
+                                pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                            }
                         });
                     } else {
                         fromMarker.setPosition(position);
@@ -228,6 +238,12 @@
                             title: 'to',
                             icon: 'resources/to_marker.png'
                         });
+
+                        toMarker.addListener('dragend', function(e) {
+                            if (fromMarker != undefined) {
+                                pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
+                                }
+                        });
                     } else {
                         toMarker.setPosition(position);
                     }
@@ -235,7 +251,7 @@
                     pk_decodeAddress(toMarker.getPosition(), 'to');
 
                     if (fromMarker != undefined) {
-                        pk_calculateAndDisplayRoute(directionsService, directionsDisplay, toMarker, toMarker.getPosition());
+                        pk_calculateAndDisplayRoute(directionsService, directionsDisplay);
                     }
                 }
 
@@ -249,7 +265,12 @@
                 if (selectedMode == 'BUS' || selectedMode == 'TRAIN') {
                     transitMode = selectedMode;
                     selectedMode = 'TRANSIT';
+                    travel.mode = transitMode;
+                } else {
+                    travel.mode = selectedMode;
                 }
+
+
                 distanceMatrix.getDistanceMatrix({
                     origins:        [fromMarker.getPosition()],
                     destinations:   [toMarker.getPosition()],
@@ -270,6 +291,8 @@
 
                 $('#distance').text(travel.distanceForHuman);
                 $('#time').text(travel.durationForHuman);
+
+                pk_calcCo2Value(travel.mode);
             }
 
             pk_setPositionFromAddress = function(address, marker) {
@@ -277,7 +300,7 @@
 
                 timeoutHandler = setTimeout(function() {
                     pk_codeAddress(address, marker);
-                }, 2000);
+                }, 1000);
             }
 
             pk_codeAddress = function(address, marker) {
@@ -289,8 +312,7 @@
                             setToMarker(results[0].geometry.location);
                         }
                     } else {
-                        //TODO
-                        console.log('wrong address:' + status);
+                        showError(messages.UNKNOWN_ADDRESS);
                     }
                 });
             }
@@ -305,10 +327,10 @@
                                 $('#to').val(results[1].formatted_address);
                             }
                         } else {
-                            console.log('No results found');
+                            showError(messages.NO_ROUTE);
                         }
                     } else {
-                        console.log('cannot decode' + status);
+                        showError(messages.UNKNOWN_LOCATION);
                     }
                 });
             }
@@ -332,15 +354,24 @@
                 }, function(response, status) {
                     if (status == 'OK') {
                         directionsDisplay.setDirections(response);
-                        pk_getDistance(selectedMode);
+
+                        if (selectedMode == 'TRANSIT') {
+                            pk_getDistance(transitMode);
+                        } else {
+                            pk_getDistance(selectedMode);
+                        }
                     } else {
-                        console.log('no route' + status);
+                        showError(messages.NO_ROUTE);
                     }
                 });
             }
 
-            // use default car co2
-            rw_updateCO2EmissionDisplay(avgCarCO2)
+            showError = function(msg) {
+                $('body').append('<div class="error-msg alert alert-danger" style="position: absolute; left: 0; top: 0; z-index: 1001; width: 100%; text-align: center; display: none;"><strong>' + msg + '</strong></div>');
+                $('.error-msg').slideDown();
+                $('.error-msg').delay(3000).slideUp()
+            }
+
         </script>
         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBMr9nVH4c531LRJ0QX1S-l2uHwJ8gagyU&callback=pk_initMap" async defer></script>
     </body>
