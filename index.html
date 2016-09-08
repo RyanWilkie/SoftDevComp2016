@@ -16,61 +16,63 @@
 
     </head>
     <body>
-        <header class="mainHeader">
-        	<img src="resources/heading.png">
-        </header>
-        <div id="map-wrapper"></div>
-        <div id="car-details-wrapper">
-            <form>
-                <div class="form-group">
-                    <label for="from">From</label>
-                    <input type="text" class="form-control" id="from" placeholder="Start Position" >
-                </div>
-
-                <div class="form-group">
-                    <label for="to">To</label>
-                    <input type="text" class="form-control" id="to" placeholder="End Position" >
-                </div>
-
-                <div class="form-group">
-                    <input type="text" class="form-control" id="regNo" placeholder="Car Registration Number" >
-                </div>
-
-                <button type="button" id="useCar" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="left" data-content="You must enter a car registration to use this." trigger="manual" data-loading-text="Loading...">Use my car</button>
-
-                <div id="travel-mode" class="form-group">
-                    <button class="btn btn-success active" id="car" data-travel-mode="DRIVING">Car</button>
-                    <button class="btn btn-success" id="bus" data-travel-mode="BUS">Bus</button>
-                    <button class="btn btn-success" id="train" data-travel-mode="TRAIN">Train</button>
-                    <button class="btn btn-success" id="car" data-travel-mode="WALKING">Walk</button>
-                </div>
-
-                <div id="trip-info-wrapper">
-
-                    <p align="center">Trip Information</p>
-
-                    <div class="row">
-                        <div class="col-md-7">Distance</div>
-                        <div id="distance" class="col-md-5">0 km</div>
+        <div id="content-wrapper">
+            <header class="mainHeader">
+            	<img src="resources/heading.png">
+            </header>
+            <div id="map-wrapper"></div>
+            <div id="car-details-wrapper">
+                <form>
+                    <div class="form-group">
+                        <label for="from">From</label>
+                        <input type="text" class="form-control" id="from" placeholder="Start Position" >
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-7">Time</div>
-                        <div id="time" class="col-md-5">0 mins</div>
+                    <div class="form-group">
+                        <label for="to">To</label>
+                        <input type="text" class="form-control" id="to" placeholder="End Position" >
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-7">CO2 Emmissions</div>
-                        <div class="col-md-5" id="co2Emissions">0 g/km</div>
+                    <div class="form-group">
+                        <input type="text" class="form-control" id="regNo" placeholder="Car Registration Number" >
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-7">CO2 Emissions for Journey</div>
-                        <div class="col-md-5" id="journeyCo2Emissions">0g</div>
+                    <button type="button" id="useCar" class="btn btn-default" data-container="body" data-toggle="popover" data-placement="left" data-content="You must enter a car registration to use this." trigger="manual" data-loading-text="Loading...">Use my car</button>
+
+                    <div id="travel-mode" class="form-group">
+                        <button class="btn btn-success active" id="car" data-travel-mode="DRIVING">Car</button>
+                        <button class="btn btn-success" id="bus" data-travel-mode="BUS">Bus</button>
+                        <button class="btn btn-success" id="train" data-travel-mode="TRAIN">Train</button>
+                        <button class="btn btn-success" id="car" data-travel-mode="WALKING">Walk</button>
                     </div>
 
-                </div>
-            </form>
+                    <div id="trip-info-wrapper">
+
+                        <p align="center">Trip Information</p>
+
+                        <div class="row">
+                            <div class="col-md-7">Distance</div>
+                            <div id="distance" class="col-md-5">0 km</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-7">Time</div>
+                            <div id="time" class="col-md-5">0 mins</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-7">CO2 Emmissions</div>
+                            <div class="col-md-5" id="co2Emissions">0 g/km</div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-7">CO2 Emissions for Journey</div>
+                            <div class="col-md-5" id="journeyCo2Emissions">0g</div>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
         </div>
 
         <script type="text/javascript">
