@@ -1,21 +1,70 @@
+html {
+
+	 background: url(../resources/background-pic.jpg) no-repeat center center fixed;
+	 -webkit-background-size:cover;
+	 -moz-background-size:cover;
+	 -o-background-size:cover;
+	 background-size:cover;
+
+}
+
+.mainHeader {
+	margin-left:10px;
+	border: 1px solid black;
+    background-color:rgba(255,255,255,1.00);
+    padding: 5px 5px 5px 5px;
+
+}
+
+.col-md-8{
+color:rgba(21,34,71,1.00);
+}
+
+.col-md-4 {
+
+color:rgba(21,34,71,1.00);
+
+}
+
+.fromAndToText {
+
+color:rgba(255,255,255,1.00);
+
+}
+
+
+.form-group {
+
+    background-color:transparent;
+	filter: alpha(opacity=50);
+	opacity:1;
+
+}
+
 .last-word {
 	color:rgba(83,219,28,1.00);
 }
 
 #map-wrapper {
-    width: 800px;
+	margin-left:10px;
+    width: 900px;
     height: 700px;
-    background-color: blue;
+    background-color:transparent;
+	filter: alpha(opacity=50);
+	opacity:.95;
 }
 
 #car-details-wrapper {
-    width:300px;
+    width:350px;
+    height:700px;
+    padding: 5px;
+    background-color:rgba(255,255,255,1.00);
     margin-left: 10px;
 }
 
 #map-wrapper,
 #car-details-wrapper {
-    float: left;
+    float:left;
 }
 
 #regNo {
@@ -44,5 +93,5 @@
 }
 
 .form-control[readonly] {
-    background-color: #fff;
+	background-color:rgba(255,255,255,1.00);
 }
