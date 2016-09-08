@@ -84,7 +84,8 @@
             var messages = {
                 NO_ROUTE: 'No route found for selected type of transport',
                 UNKNOWN_ADDRESS: 'Address cannot be found',
-                UNKNOWN_LOCATION: 'Coordinates provided don&#39;t match any record'
+                UNKNOWN_LOCATION: 'Coordinates provided don&#39;t match any record',
+                UNKNOWN_VEHICLE: 'Vehicle cannot be found in the database.'
             }
 
             // Source: http://www.aef.org.uk/downloads/Grams_CO2_transportmodesUK.pdf
@@ -112,10 +113,18 @@
                     $("#useCar").button('loading')
 
                     $.get("callAPIDev.php", {regno: $("#regNo").val()}, function(data) {
+
+                        console.log(data)
+
                         var vehicleDetails = data.split(",")
 
-                        rw_updateCO2EmissionDisplay(vehicleDetails[2])
-                        myCarCO2 = vehicleDetails[2]
+                        if (vehicleDetails[2] == 0 || vehicleDetails[2] == "") {
+                            showError(messages.UNKNOWN_VEHICLE)
+                            myCarCO2 = 0.0;
+                        } else {
+                            rw_updateCO2EmissionDisplay(vehicleDetails[2])
+                            myCarCO2 = vehicleDetails[2]
+                        }
 
                         $("#useCar").button('reset')
                     })
